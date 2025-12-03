@@ -6,6 +6,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.util.AntPathMatcher;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -28,6 +31,19 @@ public class SwaggerAutoConfig {
                 .paths(PathSelectors.any())
                 .build()
                 .apiInfo(apiInfo(properties));
+    }
+
+    // Force AntPathMatcher when enabled to avoid Springfox NPE on Boot 2.6/2.7
+    @Bean
+    @ConditionalOnClass(WebMvcConfigurer.class)
+    @ConditionalOnProperty(prefix = "zula.swagger", name = "force-ant-path-matcher", havingValue = "true", matchIfMissing = true)
+    public WebMvcConfigurer swaggerPathMatchingConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void configurePathMatch(PathMatchConfigurer configurer) {
+                configurer.setPathMatcher(new AntPathMatcher());
+            }
+        };
     }
 
     private ApiInfo apiInfo(SwaggerProperties properties) {
