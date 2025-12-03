@@ -1,56 +1,52 @@
 package com.zula.swagger.config;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springdoc.core.GroupedOpenApi;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.util.AntPathMatcher;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
+import org.springframework.util.StringUtils;
 
 @Configuration
-@ConditionalOnClass(Docket.class)
+@ConditionalOnClass({OpenAPI.class, GroupedOpenApi.class})
 @ConditionalOnProperty(name = "zula.swagger.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(SwaggerProperties.class)
 public class SwaggerAutoConfig {
 
+    private static final String SECURITY_SCHEME_NAME = "JWT Auth";
+
     @Bean
     @ConditionalOnMissingBean
-    public Docket api(SwaggerProperties properties) {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage(properties.getBasePackage()))
-                .paths(PathSelectors.any())
-                .build()
-                .apiInfo(apiInfo(properties));
+    public GroupedOpenApi groupedOpenApi(SwaggerProperties properties) {
+        GroupedOpenApi.Builder builder = GroupedOpenApi.builder().group("api");
+        if (StringUtils.hasText(properties.getBasePackage())) {
+            builder.packagesToScan(properties.getBasePackage());
+        }
+        return builder.build();
     }
 
-    // Force AntPathMatcher when enabled to avoid Springfox NPE on Boot 2.6/2.7
     @Bean
-    @ConditionalOnClass(WebMvcConfigurer.class)
-    @ConditionalOnProperty(prefix = "zula.swagger", name = "force-ant-path-matcher", havingValue = "true", matchIfMissing = true)
-    public WebMvcConfigurer swaggerPathMatchingConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setPathMatcher(new AntPathMatcher());
-            }
-        };
-    }
-
-    private ApiInfo apiInfo(SwaggerProperties properties) {
-        return new ApiInfoBuilder()
-                .title(properties.getTitle())
-                .description(properties.getDescription())
-                .version(properties.getVersion())
-                .build();
+    @ConditionalOnMissingBean
+    public OpenAPI customOpenAPI(SwaggerProperties properties) {
+        return new OpenAPI()
+                .components(new Components()
+                        .addSecuritySchemes(SECURITY_SCHEME_NAME,
+                                new SecurityScheme()
+                                        .name("Authorization")
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")))
+                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
+                .info(new Info()
+                        .title(properties.getTitle())
+                        .description(properties.getDescription())
+                        .version(properties.getVersion()));
     }
 }
