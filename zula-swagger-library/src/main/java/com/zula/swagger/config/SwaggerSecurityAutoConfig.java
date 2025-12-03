@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -25,8 +24,8 @@ public class SwaggerSecurityAutoConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
+                .authorizeRequests(auth -> auth
+                        .antMatchers(
                                 "/",
                                 "/error",
                                 "/swagger-ui/**",
@@ -36,8 +35,8 @@ public class SwaggerSecurityAutoConfig {
                         ).permitAll()
                         .anyRequest().permitAll()
                 )
-                .httpBasic(Customizer.withDefaults())
-                .formLogin(form -> form.disable());
+                .httpBasic()
+                .formLogin().disable();
 
         return http.build();
     }
