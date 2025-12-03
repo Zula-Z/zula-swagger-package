@@ -24,19 +24,20 @@ public class SwaggerSecurityAutoConfig {
     @ConditionalOnMissingBean(SecurityFilterChain.class)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                new AntPathRequestMatcher("/"),
-                                new AntPathRequestMatcher("/error"),
-                                new AntPathRequestMatcher("/swagger-ui/**"),
-                                new AntPathRequestMatcher("/swagger-ui.html"),
-                                new AntPathRequestMatcher("/v3/api-docs/**"),
-                                new AntPathRequestMatcher("/actuator/**")
-                        ).permitAll()
-                        .anyRequest().permitAll()
-                )
+                .csrf().disable()
+                .authorizeRequests()
+                    .antMatchers(
+                            "/",
+                            "/error",
+                            "/swagger-ui/**",
+                            "/swagger-ui.html",
+                            "/v3/api-docs/**",
+                            "/actuator/**"
+                    ).permitAll()
+                    .anyRequest().permitAll()
+                .and()
                 .httpBasic()
+                .and()
                 .formLogin().disable();
 
         return http.build();
