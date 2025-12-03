@@ -29,6 +29,12 @@
       "type": "java.lang.String",
       "description": "Base package to scan for API endpoints.",
       "defaultValue": "com.zula"
+    },
+    {
+      "name": "zula.swagger.security.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable the default security filter chain that permits Swagger endpoints.",
+      "defaultValue": true
     }
   ]
 }
