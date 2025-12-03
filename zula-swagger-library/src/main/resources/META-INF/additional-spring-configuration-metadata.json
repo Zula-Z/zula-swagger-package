@@ -1,0 +1,34 @@
+{
+  "properties": [
+    {
+      "name": "zula.swagger.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable the Zula Swagger auto-configuration.",
+      "defaultValue": true
+    },
+    {
+      "name": "zula.swagger.title",
+      "type": "java.lang.String",
+      "description": "Title for the generated Swagger documentation.",
+      "defaultValue": "Zula API"
+    },
+    {
+      "name": "zula.swagger.description",
+      "type": "java.lang.String",
+      "description": "Description for the generated Swagger documentation.",
+      "defaultValue": "Zula Microservices API"
+    },
+    {
+      "name": "zula.swagger.version",
+      "type": "java.lang.String",
+      "description": "API version displayed in Swagger.",
+      "defaultValue": "1.0.0"
+    },
+    {
+      "name": "zula.swagger.base-package",
+      "type": "java.lang.String",
+      "description": "Base package to scan for API endpoints.",
+      "defaultValue": "com.zula"
+    }
+  ]
+}
