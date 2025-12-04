@@ -1,5 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 com.zula.swagger.config.SwaggerAutoConfig,\
-com.zula.swagger.config.SpringfoxPathMatchingConfig,\
-com.zula.swagger.config.SpringfoxSwaggerConfig,\
 com.zula.swagger.config.SwaggerSecurityAutoConfig
