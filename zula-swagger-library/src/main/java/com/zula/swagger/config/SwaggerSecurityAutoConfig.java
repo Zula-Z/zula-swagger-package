@@ -1,17 +1,18 @@
 package com.zula.swagger.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Security filter chain that permits Swagger/OpenAPI endpoints when Spring Security is present.
- * Guarded so it won't override a user-defined SecurityFilterChain.
+ * Dedicated security filter chain for Swagger/OpenAPI endpoints so they stay publicly accessible
+ * even when the host application registers its own security configuration.
  */
 @Configuration
 @EnableWebSecurity
@@ -19,22 +20,22 @@ import org.springframework.security.web.SecurityFilterChain;
 @ConditionalOnProperty(name = "zula.swagger.security.enabled", havingValue = "true", matchIfMissing = true)
 public class SwaggerSecurityAutoConfig {
 
+    private static final String[] SWAGGER_WHITELIST = {
+            "/",
+            "/error",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/v3/api-docs/**",
+            "/actuator/**"
+    };
+
     @Bean
-    @ConditionalOnMissingBean(SecurityFilterChain.class)
+    @Order(SecurityProperties.BASIC_AUTH_ORDER - 1)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .securityMatchers(matchers -> matchers.requestMatchers(SWAGGER_WHITELIST))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/",
-                                "/error",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/actuator/**"
-                        ).permitAll()
-                        .anyRequest().permitAll()
-                )
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .httpBasic(customizer -> {})
                 .formLogin(form -> form.disable())
                 .build();
